@@ -40,13 +40,36 @@ public class InventoryController {
     @PostMapping
     public Inventory addItem(@RequestBody Map<String, Object> request) {
         String productName = (String) request.get("productName");
-        Inventory item = new Inventory();
-        item.setColor((String) request.get("color"));
-        item.setCategory((String) request.get("category"));
-        item.setYardAvailable(Double.parseDouble(request.get("yardAvailable").toString()));
-        item.setPieceAvailable(Double.parseDouble(request.get("pieceAvailable").toString()));
+        String color = (String) request.get("color");
+        String category = (String) request.get("category");
+        double yardAvailable = Double.parseDouble(request.get("yardAvailable").toString());
+        double pieceAvailable = Double.parseDouble(request.get("pieceAvailable").toString());
+        String inventoryUnit = (String) request.get("inventoryUnit");
 
-        return service.addItem(productName, item);
+        Long masterProductId = service.getMasterProductId(productName);
+
+        Inventory existing = service.getItemByProductColorCategory(masterProductId, color, category);
+
+        if (existing != null) {
+            existing.setYardAvailable(existing.getYardAvailable() + yardAvailable);
+            existing.setPieceAvailable(existing.getPieceAvailable() + pieceAvailable);
+            existing.setLoadedYards(existing.getLoadedYards() + yardAvailable);
+            existing.setLoadedPieces(existing.getLoadedPieces() + pieceAvailable);
+            existing.setInventoryUnit(inventoryUnit);
+            return service.updateItem(existing.getId(), productName, existing);
+        } else {
+            Inventory item = new Inventory();
+            item.setColor(color);
+            item.setCategory(category);
+            item.setYardAvailable(yardAvailable);
+            item.setPieceAvailable(pieceAvailable);
+            item.setLoadedYards(yardAvailable);
+            item.setLoadedPieces(pieceAvailable);
+            item.setInventoryUnit(inventoryUnit);
+            return service.addItem(productName, item);
+        }
+
+
     }
 
     @PostMapping("/addProduct")
@@ -66,6 +89,7 @@ public class InventoryController {
         itemDetails.setCategory((String) request.get("category"));
         itemDetails.setYardAvailable(Double.parseDouble(request.get("yardAvailable").toString()));
         itemDetails.setPieceAvailable(Double.parseDouble(request.get("pieceAvailable").toString()));
+
 
         return service.updateItem(id, productName, itemDetails);
     }
@@ -92,4 +116,27 @@ public class InventoryController {
         service.deleteItem(id);
         return "Item deleted successfully!";
     }
+
+    @GetMapping("/colors/{value}")
+    public Object[] getItemsByColor(@PathVariable Long value) {
+        log.info("Fetching colors by Master Product: {}", value);
+        return service.getItemsByColor(value);
+    }
+
+    @GetMapping("/categories/{value}/{color}")
+    public Object[] getItemsByProductColor(@PathVariable Long value, @PathVariable String color) {
+        log.info("Fetching Categories by Master Product & Color: {}", value);
+        return service.getItemsByProductAndColor(value,color);
+    }
+
+    @PutMapping("/sale")
+    public Inventory updateInventoryOnSale(@RequestBody Map<String, Object> request) {
+        Long productId = Long.parseLong(request.get("productId").toString());
+        double saleYards = Double.parseDouble(request.get("saleYards").toString());
+        double salePieces = Double.parseDouble(request.get("salePieces").toString());
+        String color = (String) request.get("color");
+        String category = (String) request.get("category");
+        return service.updateInventoryOnSale(productId, saleYards, salePieces, color, category);
+    }
+
 }

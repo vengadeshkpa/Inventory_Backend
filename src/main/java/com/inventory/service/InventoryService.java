@@ -1,6 +1,5 @@
 package com.inventory.service;
 
-import com.inventory.controller.InventoryController;
 import com.inventory.model.Inventory;
 import com.inventory.model.MasterProduct;
 import com.inventory.repository.InventoryRepository;
@@ -31,8 +30,18 @@ public class InventoryService {
         return masterProductRepository.findAll();
     }
 
+    public Long getMasterProductId(String productName) {
+        return masterProductRepository.findByProductName(productName)
+                .map(MasterProduct::getId)
+                .orElseThrow(() -> new RuntimeException("MasterProduct not found for productName: " + productName));
+    }
+
     public Optional<Inventory> getItemById(Long id) {
         return inventoryRepository.findById(id);
+    }
+
+    public Inventory getItemByProductColorCategory(Long productId, String color, String category) {
+        return inventoryRepository.findByProduct_IdAndColorAndCategory(productId, color, category);
     }
 
     public Inventory addItem(String productName, Inventory item) {
@@ -146,5 +155,39 @@ public class InventoryService {
 
     public void deleteItem(Long id) {
         inventoryRepository.deleteById(id);
+    }
+
+    public Object[] getItemsByColor(Long value) {
+        log.info("Fetching items by color: {}", value);
+
+        Object[] colors =  inventoryRepository.findDistinctColorByProduct_Id(value)
+                .stream()
+                .map(Inventory::getColor)
+                .distinct().toArray();
+
+        log.info("Distinct colors found: {}", colors);
+        return colors;
+    }
+
+    public Inventory updateInventoryOnSale(Long productId, double saleYards, double salePieces, String color, String category) {
+        Inventory inventory = inventoryRepository.findByProduct_IdAndColorAndCategory(productId, color, category);
+        if (inventory == null) {
+            throw new RuntimeException("Inventory not found for productId: " + productId + ", color: " + color + ", category: " + category);
+        }
+        inventory.setYardAvailable(inventory.getYardAvailable() - saleYards);
+        inventory.setPieceAvailable(inventory.getPieceAvailable() - salePieces);
+        inventory.setSaleYards(inventory.getSaleYards() + saleYards);
+        inventory.setSalePieces(inventory.getSalePieces() + salePieces);
+        return inventoryRepository.save(inventory);
+    }
+
+    public Object[] getItemsByProductAndColor(Long value, String color) {
+        log.info("Fetching items by product ID: {} and color: {}", value, color);
+        List<Inventory> inventories = inventoryRepository.findDistinctCategoryByProduct_IdAndColor(value, color);
+
+        return inventories.stream()
+                .map(Inventory::getCategory)
+                .distinct()
+                .toArray();
     }
 }
