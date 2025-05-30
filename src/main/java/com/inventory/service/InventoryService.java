@@ -20,7 +20,6 @@ public class InventoryService {
 
     @Autowired
     private MasterProductRepository masterProductRepository;
-    private static final Logger log = LoggerFactory.getLogger(InventoryService.class);
 
     public List<Inventory> getAllItems() {
         return inventoryRepository.findAll();
@@ -38,10 +37,6 @@ public class InventoryService {
 
     public Optional<Inventory> getItemById(Long id) {
         return inventoryRepository.findById(id);
-    }
-
-    public Inventory getItemByProductColorCategory(Long productId, String color, String category) {
-        return inventoryRepository.findByProduct_IdAndColorAndCategory(productId, color, category);
     }
 
     public Inventory addItem(String productName, Inventory item) {
@@ -77,7 +72,7 @@ public class InventoryService {
 
             item.setProduct(product);
             item.setColor(itemDetails.getColor());
-            item.setCategory(itemDetails.getCategory());
+            //item.setCategory(itemDetails.getCategory());
             item.setYardAvailable(itemDetails.getYardAvailable());
             item.setPieceAvailable(itemDetails.getPieceAvailable());
             return inventoryRepository.save(item);
@@ -103,7 +98,7 @@ public class InventoryService {
 
             item.setProduct(product);
             item.setColor(itemDetails.getColor());
-            item.setCategory(itemDetails.getCategory());
+            //item.setCategory(itemDetails.getCategory());
             //http://localhost:8080/api/inventory/updatecond/5/Procure
             if(cond.equals("Procure"))
             {
@@ -169,10 +164,10 @@ public class InventoryService {
         return colors;
     }
 
-    public Inventory updateInventoryOnSale(Long productId, double saleYards, double salePieces, String color, String category) {
-        Inventory inventory = inventoryRepository.findByProduct_IdAndColorAndCategory(productId, color, category);
+    public Inventory updateInventoryOnSale(Long productId, double saleYards, double salePieces, String color) {
+        Inventory inventory = inventoryRepository.findByProduct_IdAndColor(productId, color);
         if (inventory == null) {
-            throw new RuntimeException("Inventory not found for productId: " + productId + ", color: " + color + ", category: " + category);
+            throw new RuntimeException("Inventory not found for productId: " + productId + ", color: " + color);
         }
         inventory.setYardAvailable(inventory.getYardAvailable() - saleYards);
         inventory.setPieceAvailable(inventory.getPieceAvailable() - salePieces);
@@ -181,13 +176,9 @@ public class InventoryService {
         return inventoryRepository.save(inventory);
     }
 
-    public Object[] getItemsByProductAndColor(Long value, String color) {
+    public Inventory getItemsByProductAndColor(Long value, String color) {
         log.info("Fetching items by product ID: {} and color: {}", value, color);
-        List<Inventory> inventories = inventoryRepository.findDistinctCategoryByProduct_IdAndColor(value, color);
 
-        return inventories.stream()
-                .map(Inventory::getCategory)
-                .distinct()
-                .toArray();
+        return inventoryRepository.findByProduct_IdAndColor(value, color);
     }
 }

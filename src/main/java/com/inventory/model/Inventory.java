@@ -22,9 +22,6 @@ public class Inventory {
     @Column(nullable = false)
     private String color;
 
-    @Column(nullable = false)
-    private String category;
-
     @Column
     private String inventoryUnit;
 

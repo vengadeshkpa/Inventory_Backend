@@ -14,7 +14,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
 
     List<Inventory> findDistinctColorByProduct_Id(Long productId);
 
-    List<Inventory> findDistinctCategoryByProduct_IdAndColor(Long productId, String color);
+    //List<Inventory> findDistinctCategoryByProduct_IdAndColor(Long productId, String color);
 
-    Inventory findByProduct_IdAndColorAndCategory(Long productId, String color, String category);
+    Inventory findByProduct_IdAndColor(Long productId, String color);
 }

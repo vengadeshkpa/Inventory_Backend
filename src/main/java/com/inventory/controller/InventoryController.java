@@ -18,7 +18,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/inventory")
 public class InventoryController {
-    private static final Logger log = LoggerFactory.getLogger(InventoryController.class);
+
     @Autowired
     private InventoryService service;
 
@@ -41,14 +41,14 @@ public class InventoryController {
     public Inventory addItem(@RequestBody Map<String, Object> request) {
         String productName = (String) request.get("productName");
         String color = (String) request.get("color");
-        String category = (String) request.get("category");
+        //String category = (String) request.get("category");
         double yardAvailable = Double.parseDouble(request.get("yardAvailable").toString());
         double pieceAvailable = Double.parseDouble(request.get("pieceAvailable").toString());
         String inventoryUnit = (String) request.get("inventoryUnit");
 
         Long masterProductId = service.getMasterProductId(productName);
 
-        Inventory existing = service.getItemByProductColorCategory(masterProductId, color, category);
+        Inventory existing = service.getItemsByProductAndColor(masterProductId, color);
 
         if (existing != null) {
             existing.setYardAvailable(existing.getYardAvailable() + yardAvailable);
@@ -60,7 +60,7 @@ public class InventoryController {
         } else {
             Inventory item = new Inventory();
             item.setColor(color);
-            item.setCategory(category);
+            //item.setCategory(category);
             item.setYardAvailable(yardAvailable);
             item.setPieceAvailable(pieceAvailable);
             item.setLoadedYards(yardAvailable);
@@ -76,6 +76,7 @@ public class InventoryController {
     public MasterProduct addProduct(@RequestBody Map<String, Object> request) {
         MasterProduct item = new MasterProduct();
         item.setProductName((String) request.get("addProductName"));
+        item.setCategory((String) request.get("addProductCategory"));
         return service.addProduct(item);
     }
 
@@ -86,7 +87,6 @@ public class InventoryController {
 
         Inventory itemDetails = new Inventory();
         itemDetails.setColor((String) request.get("color"));
-        itemDetails.setCategory((String) request.get("category"));
         itemDetails.setYardAvailable(Double.parseDouble(request.get("yardAvailable").toString()));
         itemDetails.setPieceAvailable(Double.parseDouble(request.get("pieceAvailable").toString()));
 
@@ -101,7 +101,6 @@ public class InventoryController {
         Inventory itemDetails = new Inventory();
         itemDetails.setId(id);
         itemDetails.setColor((String) request.get("color"));
-        itemDetails.setCategory((String) request.get("category"));
         itemDetails.setYardAvailable(Double.parseDouble(request.get("yardAvailable").toString()));
         itemDetails.setPieceAvailable(Double.parseDouble(request.get("pieceAvailable").toString()));
 
@@ -123,11 +122,11 @@ public class InventoryController {
         return service.getItemsByColor(value);
     }
 
-    @GetMapping("/categories/{value}/{color}")
+    /*@GetMapping("/categories/{value}/{color}")
     public Object[] getItemsByProductColor(@PathVariable Long value, @PathVariable String color) {
         log.info("Fetching Categories by Master Product & Color: {}", value);
         return service.getItemsByProductAndColor(value,color);
-    }
+    }*/
 
     @PutMapping("/sale")
     public Inventory updateInventoryOnSale(@RequestBody Map<String, Object> request) {
@@ -135,8 +134,7 @@ public class InventoryController {
         double saleYards = Double.parseDouble(request.get("saleYards").toString());
         double salePieces = Double.parseDouble(request.get("salePieces").toString());
         String color = (String) request.get("color");
-        String category = (String) request.get("category");
-        return service.updateInventoryOnSale(productId, saleYards, salePieces, color, category);
+        return service.updateInventoryOnSale(productId, saleYards, salePieces, color);
     }
 
 }
