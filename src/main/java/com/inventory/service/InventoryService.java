@@ -7,8 +7,6 @@ import com.inventory.repository.MasterProductRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
@@ -115,18 +113,18 @@ public class InventoryService {
                 log.info("inside Procure - {}",item);
             }
             //http://localhost:8080/api/inventory/updatecond/5/Sales
-            else if (cond.equals("Sales")) {
+            else if (cond.equals("Release")) {
 
-                log.info("inside Sales");
-                double yard = item.getYardAvailable()-itemDetails.getYardAvailable();
-                double piece = item.getPieceAvailable() - itemDetails.getPieceAvailable();
+                log.info("inside Release hold");
+                double yard = item.getYardAvailable()+itemDetails.getYardAvailable();
+                double piece = item.getPieceAvailable() + itemDetails.getPieceAvailable();
                 item.setYardAvailable(yard);
                 item.setPieceAvailable(piece);
-                double saleYards = item.getSaleYards()+itemDetails.getYardAvailable();
-                double salePieces = item.getSalePieces()+itemDetails.getPieceAvailable();
-                item.setSaleYards(saleYards);
-                item.setSalePieces(salePieces);
-                log.info("inside Sales - {}",item);
+                double releasedYards = item.getYardsOnHold()-itemDetails.getYardAvailable();
+                double releasedPieces = item.getPiecesOnHold()-itemDetails.getPieceAvailable();
+                item.setYardsOnHold(releasedYards);
+                item.setPiecesOnHold(releasedPieces);
+                log.info("inside Release hold - {}",item);
             }
             //http://localhost:8080/api/inventory/updatecond/5/Hold
             else if (cond.equals("Hold")) {
